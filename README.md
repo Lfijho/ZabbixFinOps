@@ -112,22 +112,21 @@ Beyond detecting waste, the module suggests **concrete right-sizing targets** �
 recommended = current_allocation × 0.80
 ```
 
-The module recommends **80% of the current allocation**, rounded to common VM sizes. A safety check ensures the recommendation is never below the server's actual P95 peak usage.
+The module recommends **80% of the current allocation** — directly, without rounding to predefined VM sizes. A safety check ensures the recommendation is never below the server's actual P95 peak usage.
 
 | Step | Description |
 |------|-------------|
 | 1. Read current specs | `system.cpu.num` (vCPUs) and `vm.memory.size[total]` (RAM bytes) |
-| 2. Calculate 80% of current | `target = current × 0.80` |
-| 3. Safety check | Ensure `target ≥ P95 actual usage` — if not, no recommendation is made |
-| 4. Round to common VM sizes | vCPU: 1, 2, 4, 8, 16, 32, 48, 64, 96, 128 — RAM: 2, 4, 8, 16, 32, 64, 128, 256, 512 GB |
+| 2. Calculate 80% of current | CPU: `floor(current × 0.80)` — RAM: `round(current × 0.80, 1 decimal)` |
+| 3. Safety check | Ensure `recommended ≥ P95 actual usage` — if not, no recommendation is made |
 
 **Example:**
 
 | Host | vCPUs | vCPU Rec. | RAM | RAM Rec. |
 |------|-------|-----------|-----|----------|
-| api-prod-01 | 8 vCPU | 4 vCPU | 32 GB | 32 GB (—) |
+| db-mongo-dev | 4 vCPU | 3 vCPU | 7.5 GB | 6.0 GB |
 
-> A server with 8 vCPUs → 80% = 6.4 → rounds to **4 vCPU**. P95 CPU usage is 21% (1.68 vCPU actual) — 4 ≥ 1.68, so the recommendation is safe.
+> A server with 7.5 GB RAM → 80% = **6.0 GB**. P95 RAM usage is 21% (1.57 GB actual) — 6.0 ≥ 1.57, so the recommendation is safe.
 
 **Notes:**
 - Recommendations only appear when the suggested size is **smaller** than current (no upsizing suggestions).
@@ -139,7 +138,6 @@ The module recommends **80% of the current allocation**, rounded to common VM si
 - **P95 safety floor** → if 80% of current would be below actual P95 usage, no recommendation is made.
 - **Minimum RAM: 2 GB** — the module never recommends less than 2 GB.
 - **Minimum vCPU: 1** — the module never recommends less than 1 vCPU.
-- Common VM sizes used for rounding: vCPU `1, 2, 4, 8, 16, 32, 48, 64, 96, 128` — RAM `2, 4, 8, 16, 32, 64, 128, 256, 512 GB`.
 
 ##  Requirements
 
