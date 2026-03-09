@@ -1,7 +1,7 @@
 <?php declare(strict_types = 0);
 /**
  * Zabbix FinOps Toolkit - Infrastructure Cost Analyzer View
- * Neo-Brutalist Edition - Technical, sharp, tool-like interface
+ * Clean Minimal Design
  *
  * @var CView $this
  * @var array $data

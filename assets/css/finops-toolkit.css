@@ -1,635 +1,464 @@
-/* ==========================================================================
-   Zabbix FinOps Toolkit - Neo-Brutalist Dark Edition
-   Technical, sharp, tool-like interface for infrastructure cost analysis
-   Dark theme compatible with Zabbix
-   ========================================================================== */
+/* Zabbix FinOps Toolkit - Clean Minimal Design */
 
-/* ==========================================================================
-   CSS VARIABLES - Brutalist Dark Design System
-   ========================================================================== */
 :root {
-    /* Core Palette - Dark Theme */
-    --finops-bg-primary: #1a1a1a;
-    --finops-bg-secondary: #242424;
-    --finops-bg-tertiary: #2d2d2d;
-    --finops-bg-card: #0f0f0f;
-    --finops-bg-header: #0a0a0a;
-
-    /* Text Colors - High Contrast on Dark */
-    --finops-text-primary: #f5f5f5;
-    --finops-text-secondary: #b0b0b0;
-    --finops-text-muted: #666666;
-    --finops-text-inverse: #0a0a0a;
-
-    /* Accent Colors */
-    --finops-accent: #ff3333;
-    --finops-accent-dim: #cc0000;
-    --finops-success: #22c55e;
-    --finops-warning: #eab308;
-
-    /* Borders - Heavy */
-    --finops-border-width: 2px;
-    --finops-border-color: #404040;
-    --finops-border-strong: #f5f5f5;
-    --finops-border-accent: #ff3333;
-
-    /* Typography */
-    --finops-font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-    --finops-font-sans: 'Helvetica Neue', 'Arial', system-ui, sans-serif;
-
-    /* Spacing */
-    --finops-space-xs: 4px;
-    --finops-space-sm: 8px;
-    --finops-space-md: 16px;
-    --finops-space-lg: 24px;
-    --finops-space-xl: 32px;
-
-    /* Shadows - Hard, directional */
-    --finops-shadow: 4px 4px 0px #000000;
-    --finops-shadow-sm: 2px 2px 0px #000000;
+    --fn-bg: #fafafa;
+    --fn-bg-elevated: #ffffff;
+    --fn-bg-muted: #f0f0f0;
+    --fn-bg-header: #ffffff;
+    --fn-text: #1a1a1a;
+    --fn-text-secondary: #555555;
+    --fn-text-muted: #888888;
+    --fn-border: #e0e0e0;
+    --fn-border-strong: #1a1a1a;
+    --fn-accent: #dc2626;
+    --fn-success: #16a34a;
+    --fn-warning: #ca8a04;
+    --fn-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --fn-font-mono: "SF Mono", Monaco, "Cascadia Code", monospace;
+    --fn-space-xs: 4px;
+    --fn-space-sm: 8px;
+    --fn-space-md: 16px;
+    --fn-space-lg: 24px;
+    --fn-space-xl: 32px;
 }
 
-/* ==========================================================================
-   BASE STYLES & CONTAINER
-   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --fn-bg: #0d0d0d;
+        --fn-bg-elevated: #1a1a1a;
+        --fn-bg-muted: #262626;
+        --fn-bg-header: #141414;
+        --fn-text: #f5f5f5;
+        --fn-text-secondary: #a0a0a0;
+        --fn-text-muted: #666666;
+        --fn-border: #2a2a2a;
+        --fn-border-strong: #404040;
+    }
+}
+
 .finops-container {
-    font-family: var(--finops-font-sans);
-    background: var(--finops-bg-primary);
-    min-height: 100vh;
-    color: var(--finops-text-primary);
+    font-family: var(--fn-font);
+    background: var(--fn-bg);
+    color: var(--fn-text);
     line-height: 1.5;
-    padding-bottom: var(--finops-space-xl);
+    min-height: 100vh;
 }
 
-/* ==========================================================================
-   HEADER SECTION
-   ========================================================================== */
 .finops-header {
-    background: var(--finops-bg-header);
-    border-bottom: var(--finops-border-width) solid var(--finops-border-strong);
-    padding: var(--finops-space-xl);
+    background: var(--fn-bg-header);
+    border-bottom: 1px solid var(--fn-border);
+    padding: var(--fn-space-lg) var(--fn-space-xl);
 }
 
 .finops-header-inner {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
+    gap: var(--fn-space-md);
     flex-wrap: wrap;
-    gap: var(--finops-space-lg);
-    max-width: 100%;
-    margin: 0 auto;
 }
 
 .finops-title-block {
     display: flex;
-    align-items: flex-start;
-    gap: var(--finops-space-md);
+    align-items: center;
+    gap: var(--fn-space-md);
 }
 
 .finops-logo {
-    width: 48px;
-    height: 48px;
-    background: var(--finops-text-primary);
-    color: var(--finops-text-inverse);
+    width: 40px;
+    height: 40px;
+    background: var(--fn-text);
+    color: var(--fn-bg);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--finops-font-mono);
+    font-family: var(--fn-font-mono);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.finops-title {
     font-size: 20px;
-    font-weight: 800;
-    border: var(--finops-border-width) solid var(--finops-text-primary);
-    box-shadow: var(--finops-shadow-sm);
-    flex-shrink: 0;
+    font-weight: 600;
+    margin: 0;
+    color: var(--fn-text);
+}
+
+.finops-subtitle {
+    font-size: 13px;
+    color: var(--fn-text-muted);
 }
 
 .finops-title-group {
     display: flex;
     flex-direction: column;
-    gap: var(--finops-space-xs);
-}
-
-.finops-title {
-    font-family: var(--finops-font-sans);
-    font-size: 26px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0;
-    color: var(--finops-text-primary);
-    line-height: 1.1;
-}
-
-.finops-subtitle {
-    font-family: var(--finops-font-mono);
-    font-size: 12px;
-    color: var(--finops-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
+    gap: 2px;
 }
 
 .finops-header-actions {
     display: flex;
     align-items: center;
-    gap: var(--finops-space-md);
+    gap: var(--fn-space-sm);
 }
 
-/* ==========================================================================
-   BUTTONS
-   ========================================================================== */
 .finops-btn {
     display: inline-flex;
     align-items: center;
-    gap: var(--finops-space-sm);
-    padding: 12px 20px;
-    font-family: var(--finops-font-mono);
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: var(--finops-border-width) solid var(--finops-border-strong);
-    background: var(--finops-bg-card);
-    color: var(--finops-text-primary);
+    gap: var(--fn-space-sm);
+    padding: 8px 16px;
+    font-family: var(--fn-font);
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--fn-border-strong);
+    background: var(--fn-bg-elevated);
+    color: var(--fn-text);
     cursor: pointer;
-    box-shadow: var(--finops-shadow-sm);
-    transition: all 0.1s ease;
     text-decoration: none;
+    transition: background-color 0.15s ease;
 }
 
 .finops-btn:hover {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-    background: var(--finops-bg-secondary);
+    background: var(--fn-bg-muted);
 }
 
 .finops-btn-primary {
-    background: var(--finops-text-primary);
-    color: var(--finops-text-inverse);
-    border-color: var(--finops-text-primary);
+    background: var(--fn-text);
+    color: var(--fn-bg);
+    border-color: var(--fn-text);
 }
 
 .finops-btn-primary:hover {
-    background: var(--finops-text-secondary);
-    border-color: var(--finops-text-secondary);
+    background: var(--fn-text-secondary);
+    border-color: var(--fn-text-secondary);
 }
 
 .finops-btn-accent {
-    background: var(--finops-bg-card);
-    border-color: var(--finops-accent);
-    color: var(--finops-accent);
+    color: var(--fn-accent);
+    border-color: var(--fn-accent);
 }
 
 .finops-btn-accent:hover {
-    background: var(--finops-accent);
-    color: var(--finops-text-primary);
+    background: var(--fn-accent);
+    color: white;
 }
 
-/* ==========================================================================
-   FILTER SECTION
-   ========================================================================== */
 .finops-filter-section {
-    background: var(--finops-bg-secondary);
-    border-bottom: var(--finops-border-width) solid var(--finops-border-color);
-    padding: var(--finops-space-lg) var(--finops-space-xl);
-}
-
-.finops-filter-inner {
-    max-width: 100%;
-    margin: 0 auto;
+    background: var(--fn-bg-elevated);
+    border-bottom: 1px solid var(--fn-border);
+    padding: var(--fn-space-md) var(--fn-space-xl);
 }
 
 .finops-filter-form {
     display: flex;
     align-items: flex-end;
-    gap: var(--finops-space-md);
+    gap: var(--fn-space-md);
     flex-wrap: wrap;
 }
 
 .finops-filter-group {
     display: flex;
     flex-direction: column;
-    gap: var(--finops-space-xs);
-    flex: 1;
+    gap: var(--fn-space-xs);
     min-width: 280px;
     max-width: 400px;
 }
 
 .finops-filter-label {
-    font-family: var(--finops-font-mono);
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--fn-text-secondary);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--finops-text-secondary);
+    letter-spacing: 0.5px;
 }
 
-/* Override Zabbix multiselect for dark theme */
 .finops-filter-form .multiselect-control {
-    background: var(--finops-bg-card) !important;
-    border: 2px solid var(--finops-border-color) !important;
+    background: var(--fn-bg) !important;
+    border: 1px solid var(--fn-border) !important;
     border-radius: 0 !important;
-    box-shadow: var(--finops-shadow-sm) !important;
-    color: var(--finops-text-primary) !important;
+    color: var(--fn-text) !important;
 }
 
 .finops-filter-form .multiselect-control:focus-within {
-    border-color: var(--finops-text-primary) !important;
-    outline: 2px solid var(--finops-accent) !important;
-    outline-offset: 2px !important;
+    border-color: var(--fn-text) !important;
+    outline: none !important;
 }
 
 .finops-filter-form .multiselect-button {
-    background: var(--finops-bg-card) !important;
-    color: var(--finops-text-primary) !important;
-    border-color: var(--finops-border-color) !important;
+    background: var(--fn-bg) !important;
+    color: var(--fn-text) !important;
+    border-color: var(--fn-border) !important;
 }
 
-.finops-filter-form .multiselect-button:after {
-    border-top-color: var(--finops-text-secondary) !important;
-}
-
-/* ==========================================================================
-   SUMMARY SECTION
-   ========================================================================== */
 .finops-summary-section {
-    padding: var(--finops-space-xl);
-    max-width: 100%;
-    margin: 0 auto;
+    padding: var(--fn-space-lg) var(--fn-space-xl);
 }
 
 .finops-summary-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--finops-space-md);
-}
-
-@media (max-width: 1200px) {
-    .finops-summary-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .finops-summary-grid {
-        grid-template-columns: 1fr;
-    }
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--fn-space-md);
 }
 
 .finops-stat-card {
-    background: var(--finops-bg-card);
-    border: var(--finops-border-width) solid var(--finops-border-color);
-    padding: var(--finops-space-lg);
-    box-shadow: var(--finops-shadow);
+    background: var(--fn-bg-elevated);
+    border: 1px solid var(--fn-border);
+    padding: var(--fn-space-md);
     display: flex;
     flex-direction: column;
-    gap: var(--finops-space-sm);
-    position: relative;
-}
-
-.finops-stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--finops-border-color);
-}
-
-.finops-stat-card--warning::before {
-    background: var(--finops-warning);
-}
-
-.finops-stat-card--warning {
-    border-color: var(--finops-warning);
-}
-
-.finops-stat-card--critical::before {
-    background: var(--finops-accent);
-}
-
-.finops-stat-card--critical {
-    border-color: var(--finops-accent);
-    background: #1a0a0a;
+    gap: var(--fn-space-xs);
 }
 
 .finops-stat-label {
-    font-family: var(--finops-font-mono);
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
+    color: var(--fn-text-muted);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--finops-text-muted);
-}
-
-.finops-stat-card--critical .finops-stat-label {
-    color: var(--finops-accent);
-}
-
-.finops-stat-card--warning .finops-stat-label {
-    color: var(--finops-warning);
+    letter-spacing: 0.5px;
 }
 
 .finops-stat-value {
-    font-family: var(--finops-font-mono);
-    font-size: 36px;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--finops-text-primary);
-}
-
-.finops-stat-card--critical .finops-stat-value {
-    color: var(--finops-accent);
+    font-family: var(--fn-font-mono);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--fn-text);
+    line-height: 1.2;
 }
 
 .finops-stat-card--warning .finops-stat-value {
-    color: var(--finops-warning);
+    color: var(--fn-warning);
 }
 
-.finops-stat-unit {
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--finops-text-muted);
+.finops-stat-card--critical .finops-stat-value {
+    color: var(--fn-accent);
 }
 
-/* ==========================================================================
-   TABLE SECTION
-   ========================================================================== */
+.finops-stat-card--warning {
+    border-left: 3px solid var(--fn-warning);
+}
+
+.finops-stat-card--critical {
+    border-left: 3px solid var(--fn-accent);
+}
+
 .finops-table-section {
-    padding: 0 var(--finops-space-xl) var(--finops-space-xl);
-    max-width: 100%;
-    margin: 0 auto;
+    padding: 0 var(--fn-space-xl) var(--fn-space-xl);
+}
+
+.finops-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--fn-space-md);
+    background: var(--fn-bg-elevated);
+    border: 1px solid var(--fn-border);
+    border-bottom: none;
+}
+
+.finops-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fn-text);
+}
+
+.finops-section-meta {
+    font-size: 12px;
+    color: var(--fn-text-muted);
 }
 
 .finops-table-wrapper {
-    background: var(--finops-bg-card);
-    border: var(--finops-border-width) solid var(--finops-border-color);
-    box-shadow: var(--finops-shadow);
+    background: var(--fn-bg-elevated);
+    border: 1px solid var(--fn-border);
     overflow-x: auto;
 }
 
 .finops-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .finops-table thead {
-    background: var(--finops-bg-secondary);
-    border-bottom: var(--finops-border-width) solid var(--finops-border-strong);
+    background: var(--fn-bg-muted);
 }
 
 .finops-table th {
-    font-family: var(--finops-font-mono);
-    font-size: 10px;
-    font-weight: 700;
+    font-family: var(--fn-font-mono);
+    font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    color: var(--finops-text-primary);
-    padding: var(--finops-space-sm) var(--finops-space-xs);
+    color: var(--fn-text-secondary);
+    padding: var(--fn-space-sm);
     text-align: left;
     white-space: nowrap;
-    border-right: 1px solid var(--finops-border-color);
+    border-bottom: 1px solid var(--fn-border);
 }
 
-.finops-table th:last-child {
-    border-right: none;
-}
-
-.finops-table th.sortable a {
-    color: var(--finops-text-primary);
+.finops-table th a {
+    color: var(--fn-text-secondary);
     text-decoration: none;
 }
 
-.finops-table th.sortable:hover {
-    background: var(--finops-bg-tertiary);
+.finops-table th a:hover {
+    color: var(--fn-text);
 }
 
 .finops-table th .sort-indicator {
-    margin-left: var(--finops-space-xs);
+    margin-left: var(--fn-space-xs);
     opacity: 0.5;
-    color: var(--finops-text-muted);
 }
 
 .finops-table th.sort-asc .sort-indicator,
 .finops-table th.sort-desc .sort-indicator {
     opacity: 1;
-    color: var(--finops-accent);
+    color: var(--fn-text);
 }
 
 .finops-table td {
-    padding: var(--finops-space-sm) var(--finops-space-xs);
-    border-bottom: 1px solid var(--finops-border-color);
-    border-right: 1px solid var(--finops-border-color);
+    padding: var(--fn-space-sm);
+    border-bottom: 1px solid var(--fn-border);
+    color: var(--fn-text-secondary);
     vertical-align: middle;
-    color: var(--finops-text-secondary);
-}
-
-.finops-table td:last-child {
-    border-right: none;
 }
 
 .finops-table tbody tr:hover {
-    background: var(--finops-bg-secondary);
+    background: var(--fn-bg-muted);
 }
 
 .finops-table tbody tr:hover td {
-    color: var(--finops-text-primary);
+    color: var(--fn-text);
 }
 
-.finops-table tbody tr:nth-child(even) {
-    background: #141414;
-}
-
-.finops-table tbody tr:nth-child(even):hover {
-    background: var(--finops-bg-tertiary);
-}
-
-/* High waste row highlight */
 .finops-table tr.finops-row-high-waste {
-    background: #1f0a0a;
+    background: rgba(220, 38, 38, 0.05);
 }
 
 .finops-table tr.finops-row-high-waste:hover {
-    background: #2a0f0f;
+    background: rgba(220, 38, 38, 0.1);
 }
 
 .finops-table tr.finops-row-high-waste td:first-child {
-    border-left: 3px solid var(--finops-accent);
+    border-left: 2px solid var(--fn-accent);
 }
 
-/* ==========================================================================
-   CELL CONTENT STYLES
-   ========================================================================== */
 .finops-cell-host {
-    font-family: var(--finops-font-mono);
-    font-weight: 600;
+    font-family: var(--fn-font-mono);
+    font-weight: 500;
     font-size: 13px;
-    color: var(--finops-text-primary);
+    color: var(--fn-text);
 }
 
 .finops-cell-group {
-    color: var(--finops-text-muted);
     font-size: 12px;
+    color: var(--fn-text-muted);
 }
 
 .finops-cell-metric {
-    font-family: var(--finops-font-mono);
-    font-weight: 500;
+    font-family: var(--fn-font-mono);
     text-align: right;
-    color: var(--finops-text-secondary);
+    color: var(--fn-text-secondary);
 }
 
 .finops-cell-metric--low {
-    color: var(--finops-success);
+    color: var(--fn-success);
 }
 
 .finops-cell-metric--medium {
-    color: var(--finops-warning);
+    color: var(--fn-warning);
 }
 
 .finops-cell-metric--high {
-    color: var(--finops-accent);
-    font-weight: 700;
+    color: var(--fn-accent);
+    font-weight: 600;
 }
 
 .finops-cell-metric--na {
-    color: var(--finops-text-muted);
-    font-style: italic;
+    color: var(--fn-text-muted);
 }
 
-/* ==========================================================================
-   BADGES
-   ========================================================================== */
 .finops-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 8px;
-    font-family: var(--finops-font-mono);
+    padding: 2px 8px;
+    font-family: var(--fn-font-mono);
     font-size: 11px;
-    font-weight: 700;
-    border: 2px solid var(--finops-border-color);
-    background: var(--finops-bg-card);
-    color: var(--finops-text-secondary);
+    font-weight: 500;
+    border: 1px solid var(--fn-border);
+    background: var(--fn-bg);
+    color: var(--fn-text-secondary);
 }
 
 .finops-badge--high {
-    background: var(--finops-accent);
-    color: var(--finops-text-primary);
-    border-color: var(--finops-accent);
+    background: var(--fn-accent);
+    color: white;
+    border-color: var(--fn-accent);
 }
 
 .finops-badge--medium {
     background: transparent;
-    color: var(--finops-warning);
-    border-color: var(--finops-warning);
+    color: var(--fn-warning);
+    border-color: var(--fn-warning);
 }
 
 .finops-badge--low {
-    background: var(--finops-bg-secondary);
-    color: var(--finops-success);
-    border-color: var(--finops-success);
+    color: var(--fn-success);
+    border-color: var(--fn-success);
 }
 
 .finops-badge--healthy {
-    background: var(--finops-success);
-    color: var(--finops-text-inverse);
-    border-color: var(--finops-success);
+    background: var(--fn-success);
+    color: white;
+    border-color: var(--fn-success);
 }
 
-/* ==========================================================================
-   TREND INDICATOR
-   ========================================================================== */
 .finops-trend {
-    font-family: var(--finops-font-mono);
+    font-family: var(--fn-font-mono);
     font-size: 11px;
-    line-height: 1.6;
 }
 
 .finops-trend-item {
     display: flex;
     align-items: center;
-    gap: var(--finops-space-xs);
+    gap: var(--fn-space-xs);
 }
 
 .finops-trend-up {
-    color: var(--finops-success);
+    color: var(--fn-success);
 }
 
 .finops-trend-down {
-    color: var(--finops-accent);
+    color: var(--fn-accent);
 }
 
-.finops-trend-neutral {
-    color: var(--finops-text-muted);
+.finops-text-muted {
+    color: var(--fn-text-muted);
 }
 
-/* ==========================================================================
-   RECOMMENDATION
-   ========================================================================== */
 .finops-recommendation {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.4;
-    color: var(--finops-text-secondary);
-    max-width: 260px;
+    color: var(--fn-text-secondary);
+    max-width: 250px;
 }
 
-/* ==========================================================================
-   EMPTY STATE
-   ========================================================================== */
 .finops-empty-state {
     text-align: center;
-    padding: var(--finops-space-xl);
-    border: 2px dashed var(--finops-border-color);
-    margin: var(--finops-space-lg);
+    padding: var(--fn-space-xl);
+    color: var(--fn-text-muted);
 }
 
 .finops-empty-title {
-    font-family: var(--finops-font-mono);
-    font-size: 16px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: var(--finops-space-sm);
-    color: var(--finops-text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fn-text);
+    margin-bottom: var(--fn-space-xs);
 }
 
 .finops-empty-text {
-    color: var(--finops-text-muted);
     font-size: 13px;
 }
 
-/* ==========================================================================
-   SECTION HEADER
-   ========================================================================== */
-.finops-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--finops-space-md) var(--finops-space-lg);
-    background: var(--finops-bg-header);
-    color: var(--finops-text-primary);
-    border-bottom: var(--finops-border-width) solid var(--finops-border-strong);
-}
-
-.finops-section-title {
-    font-family: var(--finops-font-mono);
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.finops-section-meta {
-    font-family: var(--finops-font-mono);
-    font-size: 11px;
-    color: var(--finops-text-muted);
-}
-
-/* ==========================================================================
-   TEXT UTILITIES
-   ========================================================================== */
 .finops-text-mono {
-    font-family: var(--finops-font-mono);
+    font-family: var(--fn-font-mono);
 }
 
 .finops-text-right {
@@ -640,79 +469,46 @@
     text-align: center;
 }
 
-.finops-text-muted {
-    color: var(--finops-text-muted);
-}
-
-.finops-hidden {
-    display: none !important;
-}
-
-/* ==========================================================================
-   ZABBIX INTEGRATION OVERRIDES
-   ========================================================================== */
 .finops-container .tableinfo {
     border: none;
     background: transparent;
 }
 
 .finops-container .tableinfo th {
-    background: var(--finops-bg-secondary);
+    background: var(--fn-bg-muted);
 }
 
-.finops-container .tableinfo td {
-    border-color: var(--finops-border-color);
-}
-
-/* ==========================================================================
-   RESPONSIVE
-   ========================================================================== */
-@media (max-width: 1400px) {
-    .finops-table th,
-    .finops-table td {
-        padding: var(--finops-space-sm);
-        font-size: 12px;
-    }
-}
-
-@media (max-width: 768px) {
-    .finops-header {
-        padding: var(--finops-space-md);
-    }
-
-    .finops-title {
-        font-size: 20px;
-    }
-
-    .finops-filter-section,
-    .finops-summary-section,
-    .finops-table-section {
-        padding-left: var(--finops-space-md);
-        padding-right: var(--finops-space-md);
-    }
-
-    .finops-stat-value {
-        font-size: 28px;
-    }
-}
-
-/* ==========================================================================
-   SCROLLBAR - Dark Theme
-   ========================================================================== */
 .finops-table-wrapper::-webkit-scrollbar {
-    height: 10px;
-    width: 10px;
+    height: 8px;
+    width: 8px;
 }
 
 .finops-table-wrapper::-webkit-scrollbar-track {
-    background: var(--finops-bg-secondary);
+    background: var(--fn-bg-muted);
 }
 
 .finops-table-wrapper::-webkit-scrollbar-thumb {
-    background: var(--finops-border-color);
-    border: 2px solid var(--finops-bg-secondary);
+    background: var(--fn-border);
 }
 
 .finops-table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: var(--finops-text-muted);
+    background: var(--fn-text-muted);
+}
+
+@media (max-width: 768px) {
+    .finops-header,
+    .finops-filter-section,
+    .finops-summary-section,
+    .finops-table-section {
+        padding-left: var(--fn-space-md);
+        padding-right: var(--fn-space-md);
+    }
+
+    .finops-title {
+        font-size: 18px;
+    }
+
+    .finops-stat-value {
+        font-size: 24px;
+    }
 }
