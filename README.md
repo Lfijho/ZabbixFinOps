@@ -5,7 +5,6 @@
 
 A Zabbix frontend module that identifies **underutilized servers** by analyzing historical metrics, helping teams reduce infrastructure costs through data-driven right-sizing recommendations.
 
-<img width="1600" height="757" alt="image" src="https://github.com/user-attachments/assets/f6b1a9f1-2d1e-41b8-927d-609997733727" />
 
 ##  Features
 
