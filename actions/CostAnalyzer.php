@@ -532,61 +532,27 @@ class CostAnalyzer extends CController {
 	 * Only suggests reduction when recommended < current.
 	 */
 	private function calculateRightSizing(array $r): array {
-		// CPU: recommend 80% of current vCPUs, but never below P95 actual usage.
+		// CPU: recommend 80% of current, but never below P95 actual usage. Min 1 vCPU.
 		if ($r['cpu_p95'] !== null && $r['cpu_p95'] > 0 && $r['cpu_count'] !== null && $r['cpu_count'] > 0) {
-			$target = $r['cpu_count'] * self::RIGHT_SIZE_FACTOR;
+			$recommended = max(1, (int) floor($r['cpu_count'] * self::RIGHT_SIZE_FACTOR));
 			$actual_need = ($r['cpu_p95'] / 100) * $r['cpu_count'];
-			$recommended = $this->roundToCommonCpu(max(1, $target));
 
-			// Safety: don't recommend below actual P95 usage.
 			if ($recommended >= $actual_need && $recommended < $r['cpu_count']) {
 				$r['cpu_recommended'] = $recommended;
 			}
 		}
 
-		// RAM: recommend 80% of current GB, but never below P95 actual usage. Minimum 2 GB.
+		// RAM: recommend 80% of current, but never below P95 actual usage. Min 2 GB.
 		if ($r['ram_p95'] !== null && $r['ram_p95'] > 0 && $r['ram_total_gb'] !== null && $r['ram_total_gb'] > 0) {
-			$target = $r['ram_total_gb'] * self::RIGHT_SIZE_FACTOR;
+			$recommended = max(2, round($r['ram_total_gb'] * self::RIGHT_SIZE_FACTOR, 1));
 			$actual_need = ($r['ram_p95'] / 100) * $r['ram_total_gb'];
-			$recommended = $this->roundToCommonRam(max(2, $target));
 
-			// Safety: don't recommend below actual P95 usage.
 			if ($recommended >= $actual_need && $recommended < $r['ram_total_gb']) {
 				$r['ram_recommended_gb'] = $recommended;
 			}
 		}
 
 		return $r;
-	}
-
-	/**
-	 * Round vCPU count up to the nearest common VM size.
-	 */
-	private function roundToCommonCpu(float $value): int {
-		$sizes = [1, 2, 4, 8, 16, 32, 48, 64, 96, 128];
-
-		foreach ($sizes as $size) {
-			if ($value <= $size) {
-				return $size;
-			}
-		}
-
-		return (int) ceil($value);
-	}
-
-	/**
-	 * Round RAM (GB) up to the nearest common VM size.
-	 */
-	private function roundToCommonRam(float $gb): float {
-		$sizes = [0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512];
-
-		foreach ($sizes as $size) {
-			if ($gb <= $size) {
-				return $size;
-			}
-		}
-
-		return ceil($gb);
 	}
 
 	/**

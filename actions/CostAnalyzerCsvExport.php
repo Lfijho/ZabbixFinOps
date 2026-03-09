@@ -297,9 +297,8 @@ return round((float) $row_last['avg_val'] - (float) $row_first['avg_val'], 2);
 
 private function calculateRightSizing(array $r): array {
 if ($r['cpu_p95'] !== null && $r['cpu_p95'] > 0 && $r['cpu_count'] !== null && $r['cpu_count'] > 0) {
-$target = $r['cpu_count'] * self::RIGHT_SIZE_FACTOR;
+$recommended = max(1, (int) floor($r['cpu_count'] * self::RIGHT_SIZE_FACTOR));
 $actual_need = ($r['cpu_p95'] / 100) * $r['cpu_count'];
-$recommended = $this->roundToCommonCpu(max(1, $target));
 
 if ($recommended >= $actual_need && $recommended < $r['cpu_count']) {
 $r['cpu_recommended'] = $recommended;
@@ -307,9 +306,8 @@ $r['cpu_recommended'] = $recommended;
 }
 
 if ($r['ram_p95'] !== null && $r['ram_p95'] > 0 && $r['ram_total_gb'] !== null && $r['ram_total_gb'] > 0) {
-$target = $r['ram_total_gb'] * self::RIGHT_SIZE_FACTOR;
+$recommended = max(2, round($r['ram_total_gb'] * self::RIGHT_SIZE_FACTOR, 1));
 $actual_need = ($r['ram_p95'] / 100) * $r['ram_total_gb'];
-$recommended = $this->roundToCommonRam(max(2, $target));
 
 if ($recommended >= $actual_need && $recommended < $r['ram_total_gb']) {
 $r['ram_recommended_gb'] = $recommended;
@@ -317,30 +315,6 @@ $r['ram_recommended_gb'] = $recommended;
 }
 
 return $r;
-}
-
-private function roundToCommonCpu(float $value): int {
-$sizes = [1, 2, 4, 8, 16, 32, 48, 64, 96, 128];
-
-foreach ($sizes as $size) {
-if ($value <= $size) {
-return $size;
-}
-}
-
-return (int) ceil($value);
-}
-
-private function roundToCommonRam(float $gb): float {
-$sizes = [0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512];
-
-foreach ($sizes as $size) {
-if ($gb <= $size) {
-return $size;
-}
-}
-
-return ceil($gb);
 }
 
 private function generateRecommendation(array $r): string {
