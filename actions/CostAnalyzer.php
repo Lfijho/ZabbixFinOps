@@ -31,7 +31,6 @@ class CostAnalyzer extends CController {
 	];
 	private const ITEM_KEY_RAM_PAVAIL = 'vm.memory.size[pavailable]';
 	private const ITEM_KEY_DISK       = 'vfs.fs.size[/,pused]';
-	private const ITEM_KEY_DISK_PREFIX = 'vfs.fs.size';
 	private const ITEM_KEY_NETIN      = 'net.if.in';
 	private const ITEM_KEY_NETOUT     = 'net.if.out';
 	private const ITEM_KEY_LOAD       = 'system.cpu.load';
@@ -122,7 +121,7 @@ class CostAnalyzer extends CController {
 				'key_' => array_merge([
 					self::ITEM_KEY_CPU,
 					self::ITEM_KEY_RAM_PAVAIL,
-					self::ITEM_KEY_DISK_PREFIX,
+					self::ITEM_KEY_DISK,
 					self::ITEM_KEY_NETIN,
 					self::ITEM_KEY_NETOUT,
 					self::ITEM_KEY_LOAD,
@@ -156,11 +155,8 @@ class CostAnalyzer extends CController {
 				$host_items[$hid]['ram'] = $item;
 				$host_items[$hid]['ram_inverted'] = true;
 			}
-			// Disk: vfs.fs.size[/,pused] (Linux) or vfs.fs.size[C:,pused] (Windows)
-			elseif (strpos($key, self::ITEM_KEY_DISK_PREFIX) === 0 && strpos($key, 'pused') !== false) {
-				if (!isset($host_items[$hid]['disk']) || $key === self::ITEM_KEY_DISK) {
-					$host_items[$hid]['disk'] = $item;
-				}
+			elseif ($key === self::ITEM_KEY_DISK) {
+				$host_items[$hid]['disk'] = $item;
 			}
 			elseif (strpos($key, self::ITEM_KEY_NETIN) === 0) {
 				$host_items[$hid]['net_in'] = $item;
