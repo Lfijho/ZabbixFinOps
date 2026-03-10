@@ -24,15 +24,23 @@ class CostAnalyzer extends CController {
 	private const TREND_GROWTH_THRESHOLD = 5; // percentage points
 
 	// Item keys to look for.
-	private const ITEM_KEY_CPU       = 'system.cpu.util';
-	private const ITEM_KEY_RAM_UTIL  = 'vm.memory.utilization';
+	private const ITEM_KEY_CPU        = 'system.cpu.util';
+	private const ITEM_KEYS_RAM_UTIL  = [
+		'vm.memory.utilization',   // Linux
+		'vm.memory.util'           // Windows
+	];
 	private const ITEM_KEY_RAM_PAVAIL = 'vm.memory.size[pavailable]';
-	private const ITEM_KEY_DISK      = 'vfs.fs.size[/,pused]';
-	private const ITEM_KEY_NETIN     = 'net.if.in';
-	private const ITEM_KEY_NETOUT    = 'net.if.out';
-	private const ITEM_KEY_LOAD      = 'system.cpu.load';
-	private const ITEM_KEY_CPU_NUM   = 'system.cpu.num';
-	private const ITEM_KEY_RAM_TOTAL = 'vm.memory.size[total]';
+	private const ITEM_KEY_DISK       = 'vfs.fs.size[/,pused]';
+	private const ITEM_KEY_DISK_PREFIX = 'vfs.fs.size';
+	private const ITEM_KEY_NETIN      = 'net.if.in';
+	private const ITEM_KEY_NETOUT     = 'net.if.out';
+	private const ITEM_KEY_LOAD       = 'system.cpu.load';
+	private const ITEM_KEYS_CPU_COUNT = [
+		'system.cpu.num[cores]',       // preferred: physical cores (Linux / Windows agent)
+		'system.cpu.num',              // fallback: logical CPUs
+		'wmi.get[root/cimv2,"Select NumberOfLogicalProcessors from Win32_ComputerSystem"]'  // Windows WMI
+	];
+	private const ITEM_KEY_RAM_TOTAL  = 'vm.memory.size[total]';
 
 	// Right-sizing: recommend 80% of current allocation.
 	private const RIGHT_SIZE_FACTOR = 0.80;
@@ -111,17 +119,15 @@ class CostAnalyzer extends CController {
 			'output'      => ['itemid', 'hostid', 'key_', 'value_type', 'units', 'lastvalue'],
 			'hostids'     => $hostids,
 			'search'      => [
-				'key_' => [
+				'key_' => array_merge([
 					self::ITEM_KEY_CPU,
-					self::ITEM_KEY_RAM_UTIL,
 					self::ITEM_KEY_RAM_PAVAIL,
-					self::ITEM_KEY_DISK,
+					self::ITEM_KEY_DISK_PREFIX,
 					self::ITEM_KEY_NETIN,
 					self::ITEM_KEY_NETOUT,
 					self::ITEM_KEY_LOAD,
-					self::ITEM_KEY_CPU_NUM,
 					self::ITEM_KEY_RAM_TOTAL
-				]
+				], self::ITEM_KEYS_RAM_UTIL, self::ITEM_KEYS_CPU_COUNT)
 			],
 			'searchByAny' => true,
 			'monitored'   => true,
@@ -130,7 +136,7 @@ class CostAnalyzer extends CController {
 
 		// Organize items by host and type.
 		// For CPU: prefer exact "system.cpu.util" (composite utilization).
-		// For RAM: prefer "vm.memory.utilization", fallback to "vm.memory.size[pavailable]" (inverted).
+		// For RAM: prefer "vm.memory.utilization" (Linux) or "vm.memory.util" (Windows), fallback to "vm.memory.size[pavailable]" (inverted).
 		$host_items = [];
 		foreach ($items as $item) {
 			$hid = $item['hostid'];
@@ -140,8 +146,8 @@ class CostAnalyzer extends CController {
 			if ($key === self::ITEM_KEY_CPU) {
 				$host_items[$hid]['cpu'] = $item;
 			}
-			// RAM: vm.memory.utilization (percentage used — preferred)
-			elseif ($key === self::ITEM_KEY_RAM_UTIL) {
+			// RAM: vm.memory.utilization (Linux) or vm.memory.util (Windows) — percentage used, preferred
+			elseif (in_array($key, self::ITEM_KEYS_RAM_UTIL, true)) {
 				$host_items[$hid]['ram'] = $item;
 				$host_items[$hid]['ram_inverted'] = false;
 			}
@@ -150,8 +156,11 @@ class CostAnalyzer extends CController {
 				$host_items[$hid]['ram'] = $item;
 				$host_items[$hid]['ram_inverted'] = true;
 			}
-			elseif ($key === self::ITEM_KEY_DISK) {
-				$host_items[$hid]['disk'] = $item;
+			// Disk: vfs.fs.size[/,pused] (Linux) or vfs.fs.size[C:,pused] (Windows)
+			elseif (strpos($key, self::ITEM_KEY_DISK_PREFIX) === 0 && strpos($key, 'pused') !== false) {
+				if (!isset($host_items[$hid]['disk']) || $key === self::ITEM_KEY_DISK) {
+					$host_items[$hid]['disk'] = $item;
+				}
 			}
 			elseif (strpos($key, self::ITEM_KEY_NETIN) === 0) {
 				$host_items[$hid]['net_in'] = $item;
@@ -162,8 +171,14 @@ class CostAnalyzer extends CController {
 			elseif (strpos($key, self::ITEM_KEY_LOAD) === 0) {
 				$host_items[$hid]['load'] = $item;
 			}
-			elseif ($key === self::ITEM_KEY_CPU_NUM) {
-				$host_items[$hid]['cpu_num'] = $item;
+			// CPU count: prefer system.cpu.num[cores], then system.cpu.num, then WMI
+			elseif (in_array($key, self::ITEM_KEYS_CPU_COUNT, true)) {
+				$prefer_new = !isset($host_items[$hid]['cpu_num'])
+					|| array_search($key, self::ITEM_KEYS_CPU_COUNT, true)
+						< array_search($host_items[$hid]['cpu_num']['key_'], self::ITEM_KEYS_CPU_COUNT, true);
+				if ($prefer_new) {
+					$host_items[$hid]['cpu_num'] = $item;
+				}
 			}
 			elseif ($key === self::ITEM_KEY_RAM_TOTAL) {
 				$host_items[$hid]['ram_total'] = $item;
@@ -533,11 +548,12 @@ class CostAnalyzer extends CController {
 	 */
 	private function calculateRightSizing(array $r): array {
 		// CPU: recommend 80% of current, but never below P95 actual usage. Min 1 vCPU.
-		if ($r['cpu_p95'] !== null && $r['cpu_p95'] > 0 && $r['cpu_count'] !== null && $r['cpu_count'] > 0) {
-			$recommended = max(1, (int) floor($r['cpu_count'] * self::RIGHT_SIZE_FACTOR));
-			$actual_need = ($r['cpu_p95'] / 100) * $r['cpu_count'];
+		$cpu_count = $r['cpu_count'] ?? 1;
+		if ($r['cpu_p95'] !== null && $r['cpu_p95'] > 0 && $cpu_count > 0) {
+			$recommended = max(1, (int) floor($cpu_count * self::RIGHT_SIZE_FACTOR));
+			$actual_need = ($r['cpu_p95'] / 100) * $cpu_count;
 
-			if ($recommended >= $actual_need && $recommended < $r['cpu_count']) {
+			if ($recommended >= $actual_need && $recommended < $cpu_count) {
 				$r['cpu_recommended'] = $recommended;
 			}
 		}
