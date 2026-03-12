@@ -26,9 +26,9 @@
     --fn-row-high-waste-hover: rgba(220, 38, 38, 0.1);
 }
 
-/* Dark theme (dark-theme, hc-dark) */
-body[theme="dark-theme"] .finops-container,
-body[theme="hc-dark"] .finops-container {
+/* Dark theme (dark-theme, hc-dark) — theme attribute is on <html>, not <body> */
+html[theme="dark-theme"] .finops-container,
+html[theme="hc-dark"] .finops-container {
     --fn-bg: #0d0d0d;
     --fn-bg-elevated: #1a1a1a;
     --fn-bg-muted: #262626;
