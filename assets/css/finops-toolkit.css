@@ -1,4 +1,5 @@
-/* Zabbix FinOps Toolkit - Clean Minimal Design */
+/* Zabbix FinOps Toolkit - Theme-aware Design */
+/* Light theme (default: blue-theme, hc-light) */
 
 :root {
     --fn-bg: #fafafa;
@@ -20,20 +21,24 @@
     --fn-space-md: 16px;
     --fn-space-lg: 24px;
     --fn-space-xl: 32px;
+    --fn-row-high-waste-bg: rgba(220, 38, 38, 0.05);
+    --fn-row-high-waste-hover: rgba(220, 38, 38, 0.1);
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --fn-bg: #0d0d0d;
-        --fn-bg-elevated: #1a1a1a;
-        --fn-bg-muted: #262626;
-        --fn-bg-header: #141414;
-        --fn-text: #f5f5f5;
-        --fn-text-secondary: #a0a0a0;
-        --fn-text-muted: #666666;
-        --fn-border: #2a2a2a;
-        --fn-border-strong: #404040;
-    }
+/* Dark theme (dark-theme, hc-dark) */
+body[theme="dark-theme"],
+body[theme="hc-dark"] {
+    --fn-bg: #0d0d0d;
+    --fn-bg-elevated: #1a1a1a;
+    --fn-bg-muted: #262626;
+    --fn-bg-header: #141414;
+    --fn-text: #f5f5f5;
+    --fn-text-secondary: #a0a0a0;
+    --fn-text-muted: #666666;
+    --fn-border: #2a2a2a;
+    --fn-border-strong: #404040;
+    --fn-row-high-waste-bg: rgba(220, 38, 38, 0.12);
+    --fn-row-high-waste-hover: rgba(220, 38, 38, 0.2);
 }
 
 .finops-container {
@@ -329,11 +334,11 @@
 }
 
 .finops-table tr.finops-row-high-waste {
-    background: rgba(220, 38, 38, 0.05);
+    background: var(--fn-row-high-waste-bg);
 }
 
 .finops-table tr.finops-row-high-waste:hover {
-    background: rgba(220, 38, 38, 0.1);
+    background: var(--fn-row-high-waste-hover);
 }
 
 .finops-table tr.finops-row-high-waste td:first-child {
