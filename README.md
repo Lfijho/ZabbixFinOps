@@ -152,7 +152,7 @@ Git Clone
 
 ```bash
 cd /usr/share/zabbix/ui/modules/
-git clone https://github.com/Lfijho/ZabbixFinOpsToolkit.git
+git clone https://github.com/Lfijho/ZabbixFinOps.git
 ```
 
 
