@@ -1,7 +1,8 @@
 /* Zabbix FinOps Toolkit - Theme-aware Design */
-/* Light theme (default: blue-theme, hc-light) */
+/* All variables scoped to .finops-container to avoid interfering with Zabbix themes */
 
-:root {
+/* Light theme (default: blue-theme, hc-light) */
+.finops-container {
     --fn-bg: #fafafa;
     --fn-bg-elevated: #ffffff;
     --fn-bg-muted: #f0f0f0;
@@ -26,8 +27,8 @@
 }
 
 /* Dark theme (dark-theme, hc-dark) */
-body[theme="dark-theme"],
-body[theme="hc-dark"] {
+body[theme="dark-theme"] .finops-container,
+body[theme="hc-dark"] .finops-container {
     --fn-bg: #0d0d0d;
     --fn-bg-elevated: #1a1a1a;
     --fn-bg-muted: #262626;
