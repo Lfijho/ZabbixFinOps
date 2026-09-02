@@ -5,6 +5,16 @@ All notable changes to Zabbix FinOps Toolkit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Selectable analysis windows: 1 hour, 1, 2, 5, 7, 14 and 30 days
+- Raw history queries for the 1-hour window, including the current unconsolidated hour
+- CSV export now preserves the selected analysis window
+
+### Changed
+- Growth trend intervals and minimum sample requirements now adapt to the selected window
+
 ## [1.0.0] - 2026-03-09
 
 ### Added

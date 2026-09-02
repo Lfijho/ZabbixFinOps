@@ -169,6 +169,17 @@ html[theme="hc-dark"] .finops-container {
     max-width: 400px;
 }
 
+.finops-filter-group--period {
+    min-width: 180px;
+    max-width: 180px;
+}
+
+.finops-filter-group--period z-select {
+    background: var(--fn-bg);
+    border-color: var(--fn-border);
+    border-radius: 0;
+}
+
 .finops-filter-label {
     font-size: 12px;
     font-weight: 500;

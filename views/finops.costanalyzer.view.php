@@ -15,6 +15,25 @@ $filter_form = (new CForm('get'))
 
 $filter_form->addVar('action', 'finops.costanalyzer.view');
 
+$analysis_period_labels = [
+    '1h'  => _('Last hour'),
+    '1d'  => _('Last 24 hours'),
+    '2d'  => _('Last 2 days'),
+    '5d'  => _('Last 5 days'),
+    '7d'  => _('Last 7 days'),
+    '14d' => _('Last 14 days'),
+    '30d' => _('Last 30 days')
+];
+$analysis_period = $data['analysis_period'] ?? '30d';
+$analysis_period_select = (new CSelect('analysis_period'))
+    ->setValue($analysis_period)
+    ->setFocusableElementId('analysis_period')
+    ->setWidth(180);
+
+foreach ($analysis_period_labels as $value => $label) {
+    $analysis_period_select->addOption(new CSelectOption($value, $label));
+}
+
 // Host group multiselect filter.
 $selected_groups = [];
 if (!empty($data['filter_groupids'])) {
@@ -48,18 +67,22 @@ $filter_form->addItem([
             ]))->setWidth(ZBX_TEXTAREA_FILTER_STANDARD_WIDTH)
         ))->addClass('finops-filter-select-wrapper')
     ]))->addClass('finops-filter-group'),
+    (new CDiv([
+        (new CLabel(_('Analysis Window'), 'analysis_period'))
+            ->addClass('finops-filter-label'),
+        $analysis_period_select
+    ]))->addClass('finops-filter-group finops-filter-group--period'),
     (new CSubmitButton(_('Apply Filter'), 'filter_apply', '1'))
         ->addClass('finops-btn finops-btn-primary')
 ]);
 
 // CSV export link.
 $csv_url = (new CUrl('zabbix.php'))
-    ->setArgument('action', 'finops.costanalyzer.csv');
+    ->setArgument('action', 'finops.costanalyzer.csv')
+    ->setArgument('analysis_period', $analysis_period);
 
 if (!empty($data['filter_groupids'])) {
-    foreach ($data['filter_groupids'] as $gid) {
-        $csv_url->setArgument('filter_groupids[]', $gid);
-    }
+    $csv_url->setArgument('filter_groupids', $data['filter_groupids']);
 }
 
 // Calculate summary statistics.
@@ -108,9 +131,15 @@ $summary = (new CDiv([
 $sort = $data['sort'];
 $sortorder = $data['sortorder'];
 
-$base_url = (new CUrl('zabbix.php'))
+$base_url_builder = (new CUrl('zabbix.php'))
     ->setArgument('action', 'finops.costanalyzer.view')
-    ->getUrl();
+    ->setArgument('analysis_period', $analysis_period);
+
+if (!empty($data['filter_groupids'])) {
+    $base_url_builder->setArgument('filter_groupids', $data['filter_groupids']);
+}
+
+$base_url = $base_url_builder->getUrl();
 
 // Helper: Create sortable header.
 function make_brutalist_header($label, $field, $current_sort, $current_order, $base_url) {
@@ -151,8 +180,8 @@ $header = [
     (new CColHeader(_('Load')))->addClass('finops-text-mono finops-text-right'),
     make_brutalist_header(_('Waste'), 'waste_score', $sort, $sortorder, $base_url),
     make_brutalist_header(_('Efficiency'), 'efficiency_score', $sort, $sortorder, $base_url),
-    (new CColHeader(_('vCPUs')))->addClass('finops-text-mono finops-text-right'),
-    (new CColHeader(_('vCPU Rec.')))->addClass('finops-text-mono finops-text-right'),
+    (new CColHeader(_('CPU')))->addClass('finops-text-mono finops-text-right'),
+    (new CColHeader(_('CPU Rec.')))->addClass('finops-text-mono finops-text-right'),
     (new CColHeader(_('RAM')))->addClass('finops-text-mono finops-text-right'),
     (new CColHeader(_('RAM Rec.')))->addClass('finops-text-mono finops-text-right'),
     (new CColHeader(_('Trend')))->addClass('finops-text-mono'),
@@ -254,6 +283,7 @@ function getTrendBrutalist($cpu_trend, $ram_trend) {
 
 // Build table rows.
 foreach ($results as $r) {
+    $cpu_unit = $r['cpu_unit'] ?? 'OCPU';
     $waste_level_raw = ($r['waste_score'] !== null)
         ? (($r['waste_score'] >= 80) ? 'HIGH' : (($r['waste_score'] >= 60) ? 'MEDIUM' : (($r['waste_score'] >= 40) ? 'LOW' : 'HEALTHY')))
         : 'HEALTHY';
@@ -313,12 +343,12 @@ foreach ($results as $r) {
         // Right-sizing columns.
         (new CCol(
             ($r['cpu_count'] !== null)
-                ? (new CSpan($r['cpu_count'].' vCPU'))->addClass('finops-cell-metric')
+                ? (new CSpan($r['cpu_count'].' '.$cpu_unit))->addClass('finops-cell-metric')
                 : (new CSpan('N/A'))->addClass('finops-cell-metric--na')
         ))->addClass('finops-cell-metric'),
         (new CCol(
             ($r['cpu_recommended'] !== null)
-                ? (new CSpan($r['cpu_recommended'].' vCPU'))->addClass('finops-cell-metric finops-cell-metric--low')
+                ? (new CSpan(($r['cpu_recommended_shape'] ?? null) ? $r['cpu_recommended_shape'].' ('.$r['cpu_recommended'].' '.$cpu_unit.')' : $r['cpu_recommended'].' '.$cpu_unit))->addClass('finops-cell-metric finops-cell-metric--low')
                 : (new CSpan('—'))->addClass('finops-cell-metric--na')
         ))->addClass('finops-cell-metric'),
         (new CCol(
@@ -390,7 +420,8 @@ $summary_section = (new CDiv($summary))->addClass('finops-summary-section');
 $table_section = (new CDiv([
     (new CDiv([
         (new CSpan(_('Analysis Results')))->addClass('finops-section-title'),
-        (new CSpan($total_hosts . ' ' . _('hosts')))->addClass('finops-section-meta')
+        (new CSpan($total_hosts . ' ' . _('hosts') . ' · ' . $analysis_period_labels[$analysis_period]))
+            ->addClass('finops-section-meta')
     ]))->addClass('finops-section-header'),
     (new CDiv($table))->addClass('finops-table-wrapper')
 ]))->addClass('finops-table-section');

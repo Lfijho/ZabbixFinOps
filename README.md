@@ -10,18 +10,21 @@ A Zabbix frontend module that identifies **underutilized servers** by analyzing 
 ##  Features
 
 - **Waste Score & Efficiency Score** — quantifies how much each server is under or well-utilized
-- **Growth Trend Detection** — compares first week vs. last week averages to avoid premature downsizing
+- **Growth Trend Detection** — compares representative intervals inside the selected window to avoid premature downsizing
 - **Smart Safeguards** — won't recommend reduction if disk, network or load average are saturated
 - **Sortable & Filterable Table** — filter by host group, sort by any score column
 - **Top 10 Highlight** — visually highlights the most underutilized servers
 - **Color-coded Badges** — 🟢 Healthy, 🟡 Moderate, 🔴 High waste at a glance
 - **CSV Export** — one-click download for offline analysis or reporting
-- **30-day Historical Analysis** — uses Zabbix `trends` tables for efficient queries
+- **Selectable Analysis Window** — analyze the last 1 hour, 1, 2, 5, 7, 14 or 30 days
 - **Right-Sizing Simulation** — suggests concrete vCPU and RAM targets based on P95 usage
 
 ## How It Works
 
-The module queries the Zabbix `trends` and `trends_uint` tables for the last 30 days and calculates:
+The module queries Zabbix historical data for the selected analysis window and calculates:
+
+- The 1-hour window reads `history` and `history_uint`, so the current, not-yet-consolidated hour is included.
+- Windows from 1 to 30 days read `trends` and `trends_uint` for efficient aggregation.
 
 | Metric | Source Item Key |
 |--------|----------------|
@@ -89,9 +92,9 @@ If any safeguard triggers, the module explains why reduction is not recommended.
 
 ### Trend Analysis
 
-The module compares the **average of week 1** (days 1–7) against the **average of week 4** (days 24–30) to detect workload growth.
+For windows of 14 or 30 days, the module compares the first week against the last week. Shorter windows compare their first and second halves.
 
-**Data quality gate:** Each week must have at least **24 hours** of trend data. If a host was recently added or trend data was purged, the trend shows "N/A" instead of producing misleading results.
+**Data quality gate:** The required sample count adapts to the selected window. If there is not enough data, the trend shows "N/A" instead of producing misleading results.
 
 **Projection-based blocking:** Instead of blocking on any small increase, the module projects forward:
 
@@ -144,7 +147,7 @@ The module recommends **80% of the current allocation** — directly, without ro
 - **Zabbix**: 7.0.0 to 7.4.x (tested on 7.4.7)
 - **PHP**: 8.0 or higher
 - Hosts must be monitored with standard OS templates (Linux by Zabbix Agent, etc.)
-- Trends data must be available (at least 1 hour of collection for trends to populate)
+- History must be available for the 1-hour window; trends must be available for day-based windows
 
 ##  Installation
 
@@ -169,10 +172,11 @@ The module will appear in the menu under **Monitoring → Infrastructure Cost An
 ##  Usage
 
 1. Navigate to **Monitoring → Infrastructure Cost Analyzer**
-2. (Optional) Filter by host group using the multiselect dropdown
-3. Click **Apply** to filter results
-4. Click any column header (**Waste Score**, **Efficiency**, **CPU Avg**, **RAM Avg**) to sort
-5. Click **Export CSV** to download the report
+2. Select the **Analysis Window** (1 hour, 1, 2, 5, 7, 14 or 30 days)
+3. (Optional) Filter by host group using the multiselect dropdown
+4. Click **Apply Filter** to refresh the results
+5. Click any column header (**Waste Score**, **Efficiency**, **CPU Avg**, **RAM Avg**) to sort
+6. Click **Export CSV** to download the report using the same window
 
 ### Understanding the Results Table
 
@@ -180,11 +184,11 @@ The module will appear in the menu under **Monitoring → Infrastructure Cost An
 |--------|-------------|
 | Host | Server hostname |
 | Host Group | Zabbix host group(s) |
-| CPU Avg % | Average CPU utilization over 30 days |
-| CPU Max % | Absolute peak CPU over 30 days |
+| CPU Avg % | Average CPU utilization over the selected window |
+| CPU Max % | Absolute peak CPU over the selected window |
 | CPU P95 % | 95th percentile of hourly CPU peaks (ignores top 5% spikes) |
-| RAM Avg % | Average memory utilization over 30 days |
-| RAM Max % | Absolute peak memory over 30 days |
+| RAM Avg % | Average memory utilization over the selected window |
+| RAM Max % | Absolute peak memory over the selected window |
 | RAM P95 % | 95th percentile of hourly RAM peaks (ignores top 5% spikes) |
 | Disk Avg % | Average root filesystem usage |
 | Net In / Net Out | Average network throughput |
