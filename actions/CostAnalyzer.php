@@ -18,6 +18,7 @@ class CostAnalyzer extends CController {
         private const NET_HIGH_THRESHOLD  = 80; // percentage of theoretical max or relative threshold
 
         private const DEFAULT_ANALYSIS_PERIOD = '30d';
+        private const DEFAULT_CPU_DISPLAY_UNIT = 'OCPU';
         private const ANALYSIS_PERIOD_SECONDS = [
                 '1h'  => 3600,
                 '1d'  => 86400,
@@ -74,6 +75,7 @@ class CostAnalyzer extends CController {
                 $fields = [
                         'filter_groupids' => 'array',
                         'analysis_period' => 'in 1h,1d,2d,5d,7d,14d,30d',
+                        'cpu_display_unit'=> 'in OCPU,vCPU',
                         'sort'            => 'in waste_score,efficiency_score,cpu_avg,ram_avg,host_name',
                         'sortorder'       => 'in ASC,DESC',
                         'page'            => 'ge 1'
@@ -95,6 +97,7 @@ class CostAnalyzer extends CController {
         protected function doAction(): void {
                 $filter_groupids = $this->getInput('filter_groupids', []);
                 $analysis_period = $this->getInput('analysis_period', self::DEFAULT_ANALYSIS_PERIOD);
+                $cpu_display_unit = $this->getInput('cpu_display_unit', self::DEFAULT_CPU_DISPLAY_UNIT);
                 $sort = $this->getInput('sort', 'waste_score');
                 $sortorder = $this->getInput('sortorder', 'DESC');
 
@@ -126,6 +129,7 @@ class CostAnalyzer extends CController {
                                 'host_groups'    => $this->getHostGroups(),
                                 'filter_groupids'=> $filter_groupids,
                                 'analysis_period'=> $analysis_period,
+                                'cpu_display_unit'=> $cpu_display_unit,
                                 'sort'           => $sort,
                                 'sortorder'      => $sortorder,
                                 'active_tab'     => 1
@@ -276,7 +280,7 @@ class CostAnalyzer extends CController {
                                 'waste_level'      => '',
                                 'efficiency_level' => '',
                                 'cpu_count'        => null,
-                                'cpu_unit'         => $hi['cpu_unit'] ?? 'OCPU',
+                                'cpu_unit'         => $hi['cpu_unit'] ?? $cpu_display_unit,
                                 'cpu_shape'        => null,
                                 'cpu_recommended_shape' => null,
                                 'ram_total_gb'     => null,
@@ -364,19 +368,25 @@ class CostAnalyzer extends CController {
                                 $result['cpu_count'] = round((float) $hi['cpu_db']['lastvalue'], 1);
                         }
                         elseif (isset($hi['cpu_num']) && $hi['cpu_num']['lastvalue'] !== '') {
-                                // OCI: system.cpu.num returns vCPUs (threads); 1 OCPU = 2 vCPUs.
-                                $result['cpu_count'] = $this->logicalCpusToOcpus((int) $hi['cpu_num']['lastvalue']);
+                                // system.cpu.num reports logical CPUs; present them in the selected compute unit.
+                                $result['cpu_count'] = $this->logicalCpusToDisplayUnit(
+                                        (int) $hi['cpu_num']['lastvalue'], $cpu_display_unit
+                                );
                         }
                         elseif ($is_windows_host && isset($hi['cpu_num_windows'])
                                 && $hi['cpu_num_windows']['lastvalue'] !== '') {
                                 // Official Windows templates expose logical processors through WMI.
-                                $result['cpu_count'] = $this->logicalCpusToOcpus((int) $hi['cpu_num_windows']['lastvalue']);
+                                $result['cpu_count'] = $this->logicalCpusToDisplayUnit(
+                                        (int) $hi['cpu_num_windows']['lastvalue'], $cpu_display_unit
+                                );
                         }
                         elseif ($is_windows_host && isset($hi['cpu_discovery']) && $hi['cpu_discovery']['lastvalue'] !== '') {
                                 $cpu_threads = $this->countDiscoveredCpus($hi['cpu_discovery']['lastvalue']);
 
                                 if ($cpu_threads !== null && $cpu_threads > 0) {
-                                        $result['cpu_count'] = $this->logicalCpusToOcpus($cpu_threads);
+                                        $result['cpu_count'] = $this->logicalCpusToDisplayUnit(
+                                                $cpu_threads, $cpu_display_unit
+                                        );
                                 }
                         }
                         if ($is_oci_db_host && isset($hi['ram_configured_gb'])
@@ -421,6 +431,7 @@ class CostAnalyzer extends CController {
                         'host_groups'     => $this->getHostGroups(),
                         'filter_groupids' => $filter_groupids,
                         'analysis_period' => $analysis_period,
+                        'cpu_display_unit'=> $cpu_display_unit,
                         'sort'            => $sort,
                         'sortorder'       => $sortorder,
                         'active_tab'      => 1
@@ -604,6 +615,18 @@ class CostAnalyzer extends CController {
          */
         private function logicalCpusToOcpus(int $logical_cpus): int {
                 return max(1, (int) floor($logical_cpus / 2));
+        }
+
+        /**
+         * Convert the logical processor count reported by OS items to the unit
+         * selected for compute hosts. OCI DB capacity is reported separately in ECPU.
+         */
+        private function logicalCpusToDisplayUnit(int $logical_cpus, string $cpu_display_unit): int {
+                if ($cpu_display_unit === 'vCPU') {
+                        return max(1, $logical_cpus);
+                }
+
+                return $this->logicalCpusToOcpus($logical_cpus);
         }
 
         /**

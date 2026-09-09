@@ -174,10 +174,31 @@ html[theme="hc-dark"] .finops-container {
     max-width: 180px;
 }
 
+.finops-filter-group--cpu-unit {
+    min-width: 170px;
+    max-width: 170px;
+}
+
 .finops-filter-group--period z-select {
     background: var(--fn-bg);
     border-color: var(--fn-border);
     border-radius: 0;
+}
+
+.finops-unit-help {
+    max-width: 980px;
+    margin-top: var(--fn-space-sm);
+    padding: var(--fn-space-sm) var(--fn-space-md);
+    border-left: 3px solid var(--fn-accent);
+    background: var(--fn-bg);
+    color: var(--fn-text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.finops-unit-help-title {
+    color: var(--fn-text);
+    font-weight: 700;
 }
 
 .finops-filter-label {

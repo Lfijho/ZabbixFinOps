@@ -10,6 +10,7 @@ CRoleHelper;
 class CostAnalyzerCsvExport extends CController {
 
 private const DEFAULT_ANALYSIS_PERIOD = '30d';
+private const DEFAULT_CPU_DISPLAY_UNIT = 'OCPU';
 private const ANALYSIS_PERIOD_SECONDS = [
 '1h'  => 3600,
 '1d'  => 86400,
@@ -63,7 +64,8 @@ $this->disableCsrfValidation();
 protected function checkInput(): bool {
 $fields = [
 'filter_groupids' => 'array',
-'analysis_period' => 'in 1h,1d,2d,5d,7d,14d,30d'
+'analysis_period' => 'in 1h,1d,2d,5d,7d,14d,30d',
+'cpu_display_unit' => 'in OCPU,vCPU'
 ];
 
 return $this->validateInput($fields);
@@ -76,6 +78,7 @@ return $this->checkAccess(CRoleHelper::UI_MONITORING_HOSTS);
 protected function doAction(): void {
 $filter_groupids = $this->getInput('filter_groupids', []);
 $analysis_period = $this->getInput('analysis_period', self::DEFAULT_ANALYSIS_PERIOD);
+$cpu_display_unit = $this->getInput('cpu_display_unit', self::DEFAULT_CPU_DISPLAY_UNIT);
 
 $now = time();
 $analysis_seconds = self::ANALYSIS_PERIOD_SECONDS[$analysis_period];
@@ -210,7 +213,7 @@ $r = [
 'waste_score'      => null,
 'efficiency_score' => null,
 'cpu_trend'  => null, 'ram_trend' => null,
-'cpu_count'  => null, 'cpu_unit' => $hi['cpu_unit'] ?? 'OCPU',
+'cpu_count'  => null, 'cpu_unit' => $hi['cpu_unit'] ?? $cpu_display_unit,
 'cpu_shape' => null, 'cpu_recommended_shape' => null, 'ram_total_gb' => null,
 'cpu_recommended' => null, 'ram_recommended_gb' => null,
 'recommendation' => ''
@@ -267,18 +270,20 @@ if ($is_oci_db_host && isset($hi['cpu_db']) && $hi['cpu_db']['lastvalue'] !== ''
 $r['cpu_count'] = round((float) $hi['cpu_db']['lastvalue'], 1);
 }
 elseif (isset($hi['cpu_num']) && $hi['cpu_num']['lastvalue'] !== '') {
-// OCI: system.cpu.num returns vCPUs (threads); 1 OCPU = 2 vCPUs.
-$r['cpu_count'] = $this->logicalCpusToOcpus((int) $hi['cpu_num']['lastvalue']);
+// system.cpu.num reports logical CPUs; present them in the selected compute unit.
+$r['cpu_count'] = $this->logicalCpusToDisplayUnit((int) $hi['cpu_num']['lastvalue'], $cpu_display_unit);
 }
 elseif ($is_windows_host && isset($hi['cpu_num_windows']) && $hi['cpu_num_windows']['lastvalue'] !== '') {
 // Official Windows templates expose logical processors through WMI.
-$r['cpu_count'] = $this->logicalCpusToOcpus((int) $hi['cpu_num_windows']['lastvalue']);
+$r['cpu_count'] = $this->logicalCpusToDisplayUnit(
+(int) $hi['cpu_num_windows']['lastvalue'], $cpu_display_unit
+);
 }
 elseif ($is_windows_host && isset($hi['cpu_discovery']) && $hi['cpu_discovery']['lastvalue'] !== '') {
 $cpu_threads = $this->countDiscoveredCpus($hi['cpu_discovery']['lastvalue']);
 
 if ($cpu_threads !== null && $cpu_threads > 0) {
-$r['cpu_count'] = $this->logicalCpusToOcpus($cpu_threads);
+$r['cpu_count'] = $this->logicalCpusToDisplayUnit($cpu_threads, $cpu_display_unit);
 }
 }
 if ($is_oci_db_host && isset($hi['ram_configured_gb']) && $hi['ram_configured_gb']['lastvalue'] !== '') {
@@ -310,7 +315,9 @@ return ($b['waste_score'] ?? 0) <=> ($a['waste_score'] ?? 0);
 $response = new CControllerResponseData([
 'results' => $results
 ]);
-$response->setFileName('finops_cost_analysis_'.$analysis_period.'_'.date('Y-m-d').'.csv');
+$response->setFileName(
+'finops_cost_analysis_'.$analysis_period.'_'.strtolower($cpu_display_unit).'_'.date('Y-m-d').'.csv'
+);
 $this->setResponse($response);
 }
 
@@ -441,6 +448,14 @@ return false;
 
 private function logicalCpusToOcpus(int $logical_cpus): int {
 return max(1, (int) floor($logical_cpus / 2));
+}
+
+private function logicalCpusToDisplayUnit(int $logical_cpus, string $cpu_display_unit): int {
+if ($cpu_display_unit === 'vCPU') {
+return max(1, $logical_cpus);
+}
+
+return $this->logicalCpusToOcpus($logical_cpus);
 }
 
 private function countDiscoveredCpus(string $lastvalue): ?int {

@@ -34,6 +34,12 @@ foreach ($analysis_period_labels as $value => $label) {
     $analysis_period_select->addOption(new CSelectOption($value, $label));
 }
 
+$cpu_display_unit = $data['cpu_display_unit'] ?? 'OCPU';
+$cpu_unit_toggle = (new CRadioButtonList('cpu_display_unit', $cpu_display_unit))
+    ->addValue('OCPU', 'OCPU')
+    ->addValue('vCPU', 'vCPU')
+    ->setModern(true);
+
 // Host group multiselect filter.
 $selected_groups = [];
 if (!empty($data['filter_groupids'])) {
@@ -72,14 +78,30 @@ $filter_form->addItem([
             ->addClass('finops-filter-label'),
         $analysis_period_select
     ]))->addClass('finops-filter-group finops-filter-group--period'),
+    (new CDiv([
+        (new CLabel(_('Compute CPU Unit'), 'cpu_display_unit'))
+            ->addClass('finops-filter-label'),
+        $cpu_unit_toggle
+    ]))->addClass('finops-filter-group finops-filter-group--cpu-unit'),
     (new CSubmitButton(_('Apply Filter'), 'filter_apply', '1'))
         ->addClass('finops-btn finops-btn-primary')
 ]);
 
+$cpu_unit_help = (new CDiv([
+    (new CSpan(_('CPU unit difference:')))->addClass('finops-unit-help-title'),
+    ' ',
+    _('In OCI Compute, 1 OCPU represents one physical core and is equivalent to 2 vCPUs.'),
+    ' ',
+    _('A vCPU is a logical processor (hardware thread), the unit commonly exposed by other cloud providers and operating-system templates.'),
+    ' ',
+    _('This option recalculates compute capacity and recommendations; OCI DB rows remain in ECPU.')
+]))->addClass('finops-unit-help');
+
 // CSV export link.
 $csv_url = (new CUrl('zabbix.php'))
     ->setArgument('action', 'finops.costanalyzer.csv')
-    ->setArgument('analysis_period', $analysis_period);
+    ->setArgument('analysis_period', $analysis_period)
+    ->setArgument('cpu_display_unit', $cpu_display_unit);
 
 if (!empty($data['filter_groupids'])) {
     $csv_url->setArgument('filter_groupids', $data['filter_groupids']);
@@ -133,7 +155,8 @@ $sortorder = $data['sortorder'];
 
 $base_url_builder = (new CUrl('zabbix.php'))
     ->setArgument('action', 'finops.costanalyzer.view')
-    ->setArgument('analysis_period', $analysis_period);
+    ->setArgument('analysis_period', $analysis_period)
+    ->setArgument('cpu_display_unit', $cpu_display_unit);
 
 if (!empty($data['filter_groupids'])) {
     $base_url_builder->setArgument('filter_groupids', $data['filter_groupids']);
@@ -410,7 +433,7 @@ $header_section = (new CDiv([
 
 // Filter section.
 $filter_section = (new CDiv(
-    (new CDiv($filter_form))->addClass('finops-filter-inner')
+    (new CDiv([$filter_form, $cpu_unit_help]))->addClass('finops-filter-inner')
 ))->addClass('finops-filter-section');
 
 // Summary section.
@@ -420,7 +443,10 @@ $summary_section = (new CDiv($summary))->addClass('finops-summary-section');
 $table_section = (new CDiv([
     (new CDiv([
         (new CSpan(_('Analysis Results')))->addClass('finops-section-title'),
-        (new CSpan($total_hosts . ' ' . _('hosts') . ' · ' . $analysis_period_labels[$analysis_period]))
+        (new CSpan(
+            $total_hosts . ' ' . _('hosts') . ' · ' . $analysis_period_labels[$analysis_period]
+            . ' · ' . _('Compute') . ': ' . $cpu_display_unit
+        ))
             ->addClass('finops-section-meta')
     ]))->addClass('finops-section-header'),
     (new CDiv($table))->addClass('finops-table-wrapper')

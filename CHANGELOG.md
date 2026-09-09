@@ -11,9 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Selectable analysis windows: 1 hour, 1, 2, 5, 7, 14 and 30 days
 - Raw history queries for the 1-hour window, including the current unconsolidated hour
 - CSV export now preserves the selected analysis window
+- Compute CPU unit selector for OCPU and vCPU, with OCI DB rows preserved as ECPU
+- In-page explanation of OCPU, vCPU and ECPU behavior
 
 ### Changed
 - Growth trend intervals and minimum sample requirements now adapt to the selected window
+- Compute capacity and right-sizing calculations now use the selected CPU unit
 
 ## [1.0.0] - 2026-03-09
 

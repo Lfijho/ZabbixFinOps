@@ -17,6 +17,7 @@ A Zabbix frontend module that identifies **underutilized servers** by analyzing 
 - **Color-coded Badges** — 🟢 Healthy, 🟡 Moderate, 🔴 High waste at a glance
 - **CSV Export** — one-click download for offline analysis or reporting
 - **Selectable Analysis Window** — analyze the last 1 hour, 1, 2, 5, 7, 14 or 30 days
+- **OCPU/vCPU Selector** — use OCI physical-core units or logical CPU units used by other clouds
 - **Right-Sizing Simulation** — suggests concrete vCPU and RAM targets based on P95 usage
 
 ## How It Works
@@ -89,6 +90,16 @@ A server is flagged as **oversized** only when ALL conditions are met:
 - No growth trend projected to exceed thresholds (see below)
 
 If any safeguard triggers, the module explains why reduction is not recommended.
+
+### Compute CPU Units
+
+The **Compute CPU Unit** selector changes both the displayed compute capacity and the right-sizing recommendation:
+
+- **OCPU** (default): Oracle Cloud Infrastructure compute unit. In this module, 1 OCPU equals 2 vCPUs.
+- **vCPU**: one logical processor or hardware thread, commonly exposed by other cloud providers and operating-system templates.
+- **ECPU**: OCI DB capacity unit. OCI DB rows remain in ECPU and are not changed by the compute-unit selector.
+
+Choose **vCPU** for environments whose CPU capacity item already represents logical processors. The selected unit is preserved in sorting and CSV export.
 
 ### Trend Analysis
 
@@ -173,10 +184,11 @@ The module will appear in the menu under **Monitoring → Infrastructure Cost An
 
 1. Navigate to **Monitoring → Infrastructure Cost Analyzer**
 2. Select the **Analysis Window** (1 hour, 1, 2, 5, 7, 14 or 30 days)
-3. (Optional) Filter by host group using the multiselect dropdown
-4. Click **Apply Filter** to refresh the results
-5. Click any column header (**Waste Score**, **Efficiency**, **CPU Avg**, **RAM Avg**) to sort
-6. Click **Export CSV** to download the report using the same window
+3. Select **OCPU** for OCI compute or **vCPU** for logical-CPU-based environments
+4. (Optional) Filter by host group using the multiselect dropdown
+5. Click **Apply Filter** to refresh the results
+6. Click any column header (**Waste Score**, **Efficiency**, **CPU Avg**, **RAM Avg**) to sort
+7. Click **Export CSV** to download the report using the same window and CPU unit
 
 ### Understanding the Results Table
 
@@ -195,6 +207,7 @@ The module will appear in the menu under **Monitoring → Infrastructure Cost An
 | Load Avg | Average system load |
 | Waste Score | How underutilized (higher = more waste) |
 | Efficiency | How well utilized (higher = better) |
+| CPU / CPU Rec. | Current and recommended compute capacity in OCPU or vCPU; OCI DB remains ECPU |
 | Trend | CPU/RAM usage direction (+ growth, - decline) |
 | Recommendation | Actionable suggestion |
 
